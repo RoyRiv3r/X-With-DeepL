@@ -1,0 +1,17 @@
+<svg viewBox="0 0 24 24" width="64" height="64" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="black" />
+  
+  <path d="M2 12a10 10 0 0 1 20 0" stroke="white" stroke-width="1" fill="none" />
+  <path d="M2 12a10 10 0 0 0 20 0" stroke="white" stroke-width="1" fill="none" />
+  
+  <g transform="translate(12,12) scale(0.09375) translate(-128,-128)">
+    <rect fill="none" height="256" width="256"/>
+    
+    <text x="168" y="210" font-size="160" text-anchor="middle" fill="white" font-family="Cambria Math, serif">𝕏</text>
+  
+    <line fill="none" x1="88" y1="32" x2="88" y2="56" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/>
+    <line fill="none" x1="24" y1="56" x2="152" y2="56" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/>
+    <path d="M120,56a96,96,0,0,1-96,96" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/>
+    <path d="M61.5,88A96,96,0,0,0,152,152" fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/>
+  </g>
+</svg>

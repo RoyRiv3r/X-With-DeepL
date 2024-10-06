@@ -1,0 +1,27 @@
+{
+  "name": "xwithdeepl",
+  "version": "0.2.3",
+  "description": "",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "start": "web-ext run --source-dir ./dist --config web-ext-config.cjs",
+    "dev": "concurrently \"npm run build\" \"web-ext run --source-dir ./dist --config web-ext-config.cjs --watch-file ./dist/manifest.json\" \"npm run watch-changes\"",
+    "watch-changes": "node watch-changes.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.25.7",
+    "@babel/preset-env": "^7.25.7",
+    "babel-loader": "^9.2.1",
+    "chokidar": "^4.0.1",
+    "concurrently": "^9.0.1",
+    "copy-webpack-plugin": "^12.0.2",
+    "webpack": "^5.93.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "raw-loader": "^4.0.2"
+  }
+}

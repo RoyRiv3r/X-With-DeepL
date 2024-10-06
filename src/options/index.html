@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>X With DeepL Settings</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="options.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Twitter-DeepL Options</h1>
+      <div id="message" class="message"></div>
+      <form id="options-form">
+        <div class="form-group">
+          <label for="api-key">
+            DeepL API Key <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="api-key"
+            name="api-key"
+            class="api-key-input"
+            required
+            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:fx"
+          />
+          <small>
+            <a href="https://www.deepl.com/pro#developer" target="_blank"
+              >Sign up for a free DeepL API Key here</a
+            >
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="target-language">Translate Into</label>
+          <select id="target-language" name="target-language">
+            <option value="EN-US">English (American)</option>
+            <option value="EN-GB">English (British)</option>
+            <option value="BG">Bulgarian</option>
+            <option value="CS">Czech</option>
+            <option value="DA">Danish</option>
+            <option value="DE">German</option>
+            <option value="EL">Greek</option>
+            <option value="ES">Spanish</option>
+            <option value="ET">Estonian</option>
+            <option value="FI">Finnish</option>
+            <option value="FR">French</option>
+            <option value="HU">Hungarian</option>
+            <option value="IT">Italian</option>
+            <option value="JA">Japanese</option>
+            <option value="LT">Lithuanian</option>
+            <option value="LV">Latvian</option>
+            <option value="NL">Dutch</option>
+            <option value="PL">Polish</option>
+            <option value="PT-PT">Portuguese</option>
+            <option value="PT-BR">Portuguese (Brazilian)</option>
+            <option value="RO">Romanian</option>
+            <option value="RU">Russian</option>
+            <option value="SK">Slovak</option>
+            <option value="SL">Slovenian</option>
+            <option value="SV">Swedish</option>
+            <option value="ZH">Chinese</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="formality">Formality</label>
+          <select id="formality" name="formality">
+            <option value="default">Default</option>
+            <option value="more">More Formal</option>
+            <option value="less">Less Formal</option>
+          </select>
+        </div>
+
+        <div class="form-group inline-group">
+          <label>
+            <input
+              type="checkbox"
+              id="split-sentences"
+              name="split-sentences"
+              checked
+            />
+            Split Sentences
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              id="preserve-formatting"
+              name="preserve-formatting"
+            />
+            Preserve Formatting
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              id="remove-twitter-translate-button"
+              name="remove-twitter-translate-button"
+              checked
+            />
+            Remove X's original "Translate post/note"
+          </label>
+        </div>
+
+        <button type="submit">Save Options</button>
+      </form>
+    </div>
+  </body>
+</html>
