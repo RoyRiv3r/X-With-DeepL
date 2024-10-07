@@ -1,4 +1,4 @@
-node_modules
+./node_modules
 XwithDeepl.zip
 dist/x_with_deepl-0.2.4.zip
 *.zip
