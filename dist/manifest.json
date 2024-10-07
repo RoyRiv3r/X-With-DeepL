@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "X With DeepL",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Use DeepL translation on X|Twitter!",
   "author": "RoyRiv3r <3lvf7fnfo@mozmail.com>",
   "icons": {

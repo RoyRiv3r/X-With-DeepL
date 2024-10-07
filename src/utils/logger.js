@@ -1,14 +1,7 @@
 // src/utils/logger.js
 
-const { getSetting } = require("./storage.js");
-
-let debugEnabled = false;
-
-(async () => {
-  debugEnabled = (await getSetting("debug_enabled")) || false;
-})();
-
 function debugLog(...args) {
+  const debugEnabled = true; // Set to true to enable logging
   if (debugEnabled) {
     console.log("[Twitter-DeepL]", ...args);
   }

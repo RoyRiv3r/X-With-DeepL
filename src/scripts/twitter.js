@@ -1,9 +1,8 @@
 // src/scripts/twitter.js
 
-const { getSetting } = require("../utils/storage.js");
-const { debugLog } = require("../utils/logger.js");
-const { DeepLTranslator } = require("../translator/translator.js");
-
+import { getSetting } from "../utils/storage.js";
+import { debugLog } from "../utils/logger.js";
+import { DeepLTranslator } from "../translator/translator.js";
 // Load localization
 let localization = {};
 
@@ -13,14 +12,47 @@ let localization = {};
   const translationState = new WeakMap();
   let observer;
   let removeTwitterTranslateButtonSetting = true; // default value
+  let autoTranslateInStatus = false; // default value
 
   // Get settings
   removeTwitterTranslateButtonSetting =
     (await getSetting("remove_twitter_translate_button")) !== false;
 
+  const autoTranslateSetting = await getSetting("auto_translate_in_status");
+  autoTranslateInStatus =
+    autoTranslateSetting === true || autoTranslateSetting === "true";
+
+  debugLog(`Auto-translate setting retrieved: ${autoTranslateInStatus}`);
+
+  // Listen for storage changes to update settings dynamically
+  browser.storage.onChanged.addListener((changes, area) => {
+    if (area === "local") {
+      if (changes.auto_translate_in_status) {
+        autoTranslateInStatus =
+          changes.auto_translate_in_status.newValue === true ||
+          changes.auto_translate_in_status.newValue === "true";
+        debugLog(`Auto-translate setting updated: ${autoTranslateInStatus}`);
+      }
+      if (changes.remove_twitter_translate_button) {
+        removeTwitterTranslateButtonSetting =
+          changes.remove_twitter_translate_button.newValue !== false;
+        debugLog(
+          `Remove Twitter Translate Button setting updated: ${removeTwitterTranslateButtonSetting}`
+        );
+      }
+      // Handle other settings if needed
+    }
+  });
+
   // Detect Twitter's language
   const twitterLang = document.documentElement.lang || "en";
   await loadLocalization(twitterLang);
+
+  // Initialize IntersectionObserver
+  const visibilityObserver = new IntersectionObserver(handleVisibilityChange, {
+    root: null,
+    threshold: 0.1, // Adjust as needed
+  });
 
   // Start observing tweets and notes
   observeContent();
@@ -124,15 +156,6 @@ let localization = {};
       return;
     }
 
-    translationState.set(textElement, {
-      isTranslated: false,
-      originalText: null,
-      translatedText: null,
-      showMoreElement: null, // To preserve the "Show more" element
-    });
-
-    textElement.dataset.deeplProcessed = "true";
-
     removeExistingTranslateButtons(container);
 
     if (removeTwitterTranslateButtonSetting) {
@@ -145,8 +168,45 @@ let localization = {};
 
     insertTranslateButton(textElement, translateButton, isNote);
 
+    translationState.set(textElement, {
+      isTranslated: false,
+      originalText: null,
+      translatedText: null,
+      showMoreElement: null, // To preserve the "Show more" element
+      translateButton: translateButton,
+      isProcessing: false,
+    });
+
+    textElement.dataset.deeplProcessed = "true";
+
     translateButton.addEventListener("click", async () => {
       await handleTranslateButtonClick(textElement, translateButton);
+    });
+
+    // Observe the textElement for visibility
+    if (
+      autoTranslateInStatus &&
+      window.location.pathname.includes("/status/") &&
+      !window.location.pathname.endsWith("/quotes")
+    ) {
+      visibilityObserver.observe(textElement);
+    }
+  }
+
+  /**
+   * IntersectionObserver callback to handle visibility changes.
+   */
+  function handleVisibilityChange(entries, observer) {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const textElement = entry.target;
+        const state = translationState.get(textElement);
+        if (state && !state.isTranslated && !state.isProcessing) {
+          state.isProcessing = true;
+          handleTranslateButtonClick(textElement, state.translateButton);
+        }
+        observer.unobserve(textElement); // Stop observing after processing
+      }
     });
   }
 
@@ -292,6 +352,7 @@ let localization = {};
       }
 
       if (state.isTranslated) {
+        debugLog("Restoring original text");
         restoreOriginalText(textElement, state);
         state.isTranslated = false;
         updateButtonText(translateButton, false);
@@ -326,6 +387,8 @@ let localization = {};
           // Now capture the original text without the "Show more" link
           state.originalText = clonedTextElement.innerHTML;
 
+          debugLog("Original text to translate:", state.originalText);
+
           try {
             state.translatedText = await translator.translateText(
               state.originalText,
@@ -336,10 +399,14 @@ let localization = {};
                 preserveFormatting,
               }
             );
+
+            debugLog("Translated text:", state.translatedText);
           } catch (error) {
             alert(
               `An error occurred while translating the text: ${error.message}`
             );
+            console.error("Translation error:", error);
+            state.isProcessing = false;
             return;
           }
         }
@@ -351,6 +418,12 @@ let localization = {};
       }
     } catch (error) {
       debugLog("Error in handleTranslateButtonClick:", error);
+      console.error("Error in handleTranslateButtonClick:", error);
+    } finally {
+      const state = translationState.get(textElement);
+      if (state) {
+        state.isProcessing = false;
+      }
     }
   }
 

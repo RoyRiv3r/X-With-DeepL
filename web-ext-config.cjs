@@ -6,11 +6,7 @@ module.exports = {
   },
   run: {
     firefox: "firefox",
-    startUrl: [
-      "https://x.com",
-      "https://x.com/i/birdwatch/t/1841834817157267685",
-      "https://x.com/airi_fact_555/status/1841770143355203731",
-    ],
+    startUrl: ["https://x.com"],
     firefoxProfile: "Default User",
     browserConsole: true,
   },
