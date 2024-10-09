@@ -1,8 +1,8 @@
 {
   "manifest_version": 2,
   "name": "X With DeepL",
-  "version": "0.2.4",
-  "description": "Use DeepL translation on X|Twitter!",
+  "version": "0.2.5",
+  "description": "Enhance your experience on X (formerly Twitter) by translating tweets and notes using DeepL's, adding a 'Translate with DeepL' button to posts and notes.",
   "author": "RoyRiv3r <3lvf7fnfo@mozmail.com>",
   "icons": {
     "16": "icons/icon.svg",
@@ -28,7 +28,7 @@
   ],
   "options_ui": {
     "page": "options/index.html",
-    "chrome_style": false
+    "browser_style": true
   },
   "page_action": {
     "default_icon": "icons/icon_page.svg",

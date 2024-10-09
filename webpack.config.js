@@ -46,6 +46,7 @@ module.exports = {
         { from: "src/locales/lang.json", to: "locales/lang.json" }, // Add this line to include the locales directory
         { from: "src/options/index.html", to: "options/index.html" },
         { from: "src/popup/popup.html", to: "popup/popup.html" },
+        { from: "src/popup/popup.js", to: "popup/popup.js" },
         { from: "src/popup/styles.css", to: "popup/styles.css" },
         { from: "src/options/styles.css", to: "options/styles.css" },
       ],

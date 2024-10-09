@@ -10,37 +10,123 @@ let localization = {};
   debugLog("Extension script started");
 
   const translationState = new WeakMap();
+  let translationCache = new Map(); // Global cache for translations
   let observer;
-  let removeTwitterTranslateButtonSetting = true; // default value
+  let removeTwitterTranslateButtonSetting = false; // default value
   let autoTranslateInStatus = false; // default value
 
+  // Declare variables for new settings
+  let autoTranslateInQuotes = false; // default value
+  let autoTranslateInHome = false; // default value
+
+  // Helper function to parse stored values to booleans
+  function parseBoolean(value) {
+    return value === true || value === "true";
+  }
+
+  // Load translation cache from sessionStorage
+  loadTranslationCache();
+
   // Get settings
-  removeTwitterTranslateButtonSetting =
-    (await getSetting("remove_twitter_translate_button")) !== false;
+  const removeTwitterTranslateButtonValue = await getSetting(
+    "remove_twitter_translate_button"
+  );
+  removeTwitterTranslateButtonSetting = parseBoolean(
+    removeTwitterTranslateButtonValue
+  );
 
   const autoTranslateSetting = await getSetting("auto_translate_in_status");
-  autoTranslateInStatus =
-    autoTranslateSetting === true || autoTranslateSetting === "true";
+  autoTranslateInStatus = parseBoolean(autoTranslateSetting);
+
+  // Get new settings
+  const autoTranslateInQuotesSetting = await getSetting(
+    "auto_translate_in_quotes"
+  );
+  autoTranslateInQuotes = parseBoolean(autoTranslateInQuotesSetting);
+
+  const autoTranslateInHomeSetting = await getSetting("auto_translate_in_home");
+  autoTranslateInHome = parseBoolean(autoTranslateInHomeSetting);
+
+  // Fetch translation-related settings
+  let targetLanguage = (await getSetting("target_language")) || "EN-US";
+  let formality = (await getSetting("formality")) || "default";
+  let splitSentences = parseBoolean(await getSetting("split_sentences"))
+    ? 1
+    : 0;
+  let preserveFormatting = parseBoolean(await getSetting("preserve_formatting"))
+    ? 1
+    : 0;
 
   debugLog(`Auto-translate setting retrieved: ${autoTranslateInStatus}`);
+  debugLog(
+    `Remove Twitter Translate Button setting retrieved: ${removeTwitterTranslateButtonSetting}`
+  );
+  debugLog(`Auto-translate in quotes setting: ${autoTranslateInQuotes}`);
+  debugLog(`Auto-translate in home setting: ${autoTranslateInHome}`);
 
   // Listen for storage changes to update settings dynamically
   browser.storage.onChanged.addListener((changes, area) => {
     if (area === "local") {
+      let settingsChanged = false;
+
       if (changes.auto_translate_in_status) {
-        autoTranslateInStatus =
-          changes.auto_translate_in_status.newValue === true ||
-          changes.auto_translate_in_status.newValue === "true";
+        autoTranslateInStatus = parseBoolean(
+          changes.auto_translate_in_status.newValue
+        );
         debugLog(`Auto-translate setting updated: ${autoTranslateInStatus}`);
       }
       if (changes.remove_twitter_translate_button) {
-        removeTwitterTranslateButtonSetting =
-          changes.remove_twitter_translate_button.newValue !== false;
+        removeTwitterTranslateButtonSetting = parseBoolean(
+          changes.remove_twitter_translate_button.newValue
+        );
         debugLog(
           `Remove Twitter Translate Button setting updated: ${removeTwitterTranslateButtonSetting}`
         );
       }
-      // Handle other settings if needed
+
+      if (changes.auto_translate_in_quotes) {
+        autoTranslateInQuotes = parseBoolean(
+          changes.auto_translate_in_quotes.newValue
+        );
+        debugLog(
+          `Auto-translate in quotes setting updated: ${autoTranslateInQuotes}`
+        );
+      }
+      if (changes.auto_translate_in_home) {
+        autoTranslateInHome = parseBoolean(
+          changes.auto_translate_in_home.newValue
+        );
+        debugLog(
+          `Auto-translate in home setting updated: ${autoTranslateInHome}`
+        );
+      }
+
+      // Handle translation-related settings
+      if (changes.target_language) {
+        targetLanguage = changes.target_language.newValue || "EN-US";
+        settingsChanged = true;
+      }
+      if (changes.formality) {
+        formality = changes.formality.newValue || "default";
+        settingsChanged = true;
+      }
+      if (changes.split_sentences) {
+        splitSentences = parseBoolean(changes.split_sentences.newValue) ? 1 : 0;
+        settingsChanged = true;
+      }
+      if (changes.preserve_formatting) {
+        preserveFormatting = parseBoolean(changes.preserve_formatting.newValue)
+          ? 1
+          : 0;
+        settingsChanged = true;
+      }
+
+      if (settingsChanged) {
+        // Clear the cache as settings have changed
+        translationCache.clear();
+        saveTranslationCache();
+        debugLog("Translation settings changed, cache cleared.");
+      }
     }
   });
 
@@ -156,6 +242,9 @@ let localization = {};
       return;
     }
 
+    // Get unique ID
+    const uniqueId = getUniqueId(textElement, isNote);
+
     removeExistingTranslateButtons(container);
 
     if (removeTwitterTranslateButtonSetting) {
@@ -168,14 +257,23 @@ let localization = {};
 
     insertTranslateButton(textElement, translateButton, isNote);
 
-    translationState.set(textElement, {
+    let state = {
       isTranslated: false,
       originalText: null,
       translatedText: null,
       showMoreElement: null, // To preserve the "Show more" element
       translateButton: translateButton,
       isProcessing: false,
-    });
+      uniqueId: uniqueId,
+    };
+
+    // Check if translation exists in cache
+    if (translationCache.has(uniqueId)) {
+      state.translatedText = translationCache.get(uniqueId).translatedText;
+      state.originalText = translationCache.get(uniqueId).originalText;
+    }
+
+    translationState.set(textElement, state);
 
     textElement.dataset.deeplProcessed = "true";
 
@@ -184,13 +282,70 @@ let localization = {};
     });
 
     // Observe the textElement for visibility
-    if (
-      autoTranslateInStatus &&
-      window.location.pathname.includes("/status/") &&
-      !window.location.pathname.endsWith("/quotes")
-    ) {
+    if (shouldAutoTranslate()) {
       visibilityObserver.observe(textElement);
     }
+  }
+
+  /**
+   * Generates a unique identifier for the text element.
+   * @param {HTMLElement} textElement - The text element.
+   * @param {boolean} isNote - Whether the text element is a note.
+   * @returns {string} The unique identifier.
+   */
+  function getUniqueId(textElement, isNote) {
+    // We'll use a hash of the text content and settings as the unique ID
+    const textContent = textElement.innerText.trim();
+
+    // Create a string that includes relevant settings
+    const settingsString = JSON.stringify({
+      targetLanguage,
+      formality,
+      splitSentences,
+      preserveFormatting,
+    });
+
+    const combinedString = textContent + settingsString;
+    const hash = generateHash(combinedString);
+    return (isNote ? "note-" : "tweet-") + hash;
+  }
+
+  /**
+   * Generates a simple hash code for a given text.
+   * @param {string} text - The text to hash.
+   * @returns {string} The hash code.
+   */
+  function generateHash(text) {
+    let hash = 0,
+      i,
+      chr;
+    if (text.length === 0) return hash.toString();
+    for (i = 0; i < text.length; i++) {
+      chr = text.charCodeAt(i);
+      hash = (hash << 5) - hash + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash.toString();
+  }
+
+  // Determines whether to auto-translate based on settings and URL
+  function shouldAutoTranslate() {
+    const pathname = window.location.pathname;
+
+    if (
+      autoTranslateInStatus &&
+      pathname.includes("/status/") &&
+      !pathname.endsWith("/quotes")
+    ) {
+      return true;
+    }
+    if (autoTranslateInQuotes && pathname.endsWith("/quotes")) {
+      return true;
+    }
+    if (autoTranslateInHome && (pathname === "/home" || pathname === "/")) {
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -358,56 +513,63 @@ let localization = {};
         updateButtonText(translateButton, false);
       } else {
         if (!state.translatedText) {
-          const apiKey = await getSetting("api_key");
-          if (!apiKey) {
-            alert("Please set your DeepL API Key in the extension options.");
-            return;
-          }
+          if (translationCache.has(state.uniqueId)) {
+            const cachedData = translationCache.get(state.uniqueId);
+            state.translatedText = cachedData.translatedText;
+            state.originalText = cachedData.originalText;
+          } else {
+            const apiKey = await getSetting("api_key");
+            if (!apiKey) {
+              alert("Please set your DeepL API Key in the extension options.");
+              return;
+            }
 
-          const translator = new DeepLTranslator(apiKey);
-          const targetLanguage =
-            (await getSetting("target_language")) || "EN-US";
-          const formality = (await getSetting("formality")) || "default";
-          const splitSentences = (await getSetting("split_sentences")) ? 1 : 0;
-          const preserveFormatting = (await getSetting("preserve_formatting"))
-            ? 1
-            : 0;
+            const translator = new DeepLTranslator(apiKey);
 
-          // Clone the textElement to manipulate it without affecting the DOM
-          const clonedTextElement = textElement.cloneNode(true);
+            // Clone the textElement to manipulate it without affecting the DOM
+            const clonedTextElement = textElement.cloneNode(true);
 
-          // Remove the "Show more" link from the cloned element
-          const showMoreLink = clonedTextElement.querySelector(
-            '[data-testid="tweet-text-show-more-link"]'
-          );
-          if (showMoreLink) {
-            showMoreLink.remove();
-          }
-
-          // Now capture the original text without the "Show more" link
-          state.originalText = clonedTextElement.innerHTML;
-
-          debugLog("Original text to translate:", state.originalText);
-
-          try {
-            state.translatedText = await translator.translateText(
-              state.originalText,
-              {
-                targetLanguage,
-                formality,
-                splitSentences,
-                preserveFormatting,
-              }
+            // Remove the "Show more" link from the cloned element
+            const showMoreLink = clonedTextElement.querySelector(
+              '[data-testid="tweet-text-show-more-link"]'
             );
+            if (showMoreLink) {
+              showMoreLink.remove();
+            }
 
-            debugLog("Translated text:", state.translatedText);
-          } catch (error) {
-            alert(
-              `An error occurred while translating the text: ${error.message}`
-            );
-            console.error("Translation error:", error);
-            state.isProcessing = false;
-            return;
+            // Now capture the original text without the "Show more" link
+            state.originalText = clonedTextElement.innerHTML;
+
+            debugLog("Original text to translate:", state.originalText);
+
+            try {
+              state.translatedText = await translator.translateText(
+                state.originalText,
+                {
+                  targetLanguage,
+                  formality,
+                  splitSentences,
+                  preserveFormatting,
+                }
+              );
+
+              debugLog("Translated text:", state.translatedText);
+
+              // Store in cache
+              translationCache.set(state.uniqueId, {
+                translatedText: state.translatedText,
+                originalText: state.originalText,
+              });
+              // Save cache to sessionStorage
+              saveTranslationCache();
+            } catch (error) {
+              alert(
+                `An error occurred while translating the text: ${error.message}`
+              );
+              console.error("Translation error:", error);
+              state.isProcessing = false;
+              return;
+            }
           }
         }
 
@@ -570,5 +732,39 @@ let localization = {};
     span.style.lineHeight = "20px";
     span.style.textDecoration = "none";
     span.style.marginLeft = "10px";
+  }
+
+  /**
+   * Saves the translation cache to sessionStorage.
+   */
+  function saveTranslationCache() {
+    try {
+      const cacheObject = {};
+      translationCache.forEach((value, key) => {
+        cacheObject[key] = value;
+      });
+      sessionStorage.setItem(
+        "deeplTranslationCache",
+        JSON.stringify(cacheObject)
+      );
+    } catch (error) {
+      console.error("Error saving translation cache:", error);
+    }
+  }
+
+  /**
+   * Loads the translation cache from sessionStorage.
+   */
+  function loadTranslationCache() {
+    try {
+      const cacheString = sessionStorage.getItem("deeplTranslationCache");
+      if (cacheString) {
+        const cacheObject = JSON.parse(cacheString);
+        translationCache = new Map(Object.entries(cacheObject));
+      }
+    } catch (error) {
+      console.error("Error loading translation cache:", error);
+      translationCache = new Map();
+    }
   }
 })();

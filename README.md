@@ -39,4 +39,4 @@
   Works seamlessly on X's web platform, including mobile versions.
 
 - **Open Source**<br>
-  The extension's source code is available for review to ensure transparency and security. [Github Repository](https://www.deepl.com/en/pro#developer).
+  The extension's source code is available for review to ensure transparency and security. [Github Repository](https://github.com/RoyRiv3r/X-With-DeepL).

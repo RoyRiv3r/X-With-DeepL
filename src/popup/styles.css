@@ -10,12 +10,11 @@ body {
   color: #ffffff;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
 }
 
 .container {
   padding: 15px;
-  width: 300px;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -24,6 +23,17 @@ h1 {
   margin-bottom: 15px;
   text-align: center;
   color: #ffffff;
+}
+
+h2 {
+  font-size: 16px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #3c3c3c;
+  padding-bottom: 5px;
+}
+
+.section {
+  margin-bottom: 20px;
 }
 
 .form-group {
@@ -40,6 +50,7 @@ h1 {
   font-family: monospace;
   font-size: 12px;
   letter-spacing: -0.5px;
+  text-align: center;
 }
 
 .form-group input[type="text"],
@@ -63,14 +74,14 @@ h1 {
 
 .inline-group {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
 }
 
 .inline-group label {
   display: flex;
   align-items: center;
   font-size: 13px;
+  margin-bottom: 5px;
 }
 
 .inline-group input[type="checkbox"] {
@@ -105,4 +116,74 @@ button[type="submit"]:hover {
   border-radius: 4px;
   text-align: center;
   font-size: 14px;
+}
+
+.usage-data {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #2d2d2d;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  color: #ffffff;
+  text-align: center;
+  font-size: 12px;
+}
+
+.usage-data p {
+  text-align: center;
+  margin: 0;
+}
+
+.warning-message {
+  width: 100%;
+  background-color: #e55050; /* Red background */
+  color: #ffffff;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Styles for the More Options toggle */
+.more-options-toggle {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.more-options-toggle button {
+  background-color: transparent;
+  border: none;
+  color: #569cd6;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.more-options-toggle button:hover {
+  text-decoration: none;
+}
+
+/* Responsive styles for small screens */
+@media (max-width: 400px) {
+  .container {
+    padding: 10px;
+  }
+  h1,
+  h2 {
+    font-size: 16px;
+  }
+  .form-group label {
+    font-size: 13px;
+  }
+  .form-group input[type="text"],
+  .form-group select {
+    font-size: 14px;
+  }
+  button[type="submit"] {
+    font-size: 14px;
+  }
+  .inline-group label {
+    font-size: 13px;
+  }
 }

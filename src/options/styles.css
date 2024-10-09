@@ -44,7 +44,7 @@ h1 {
 
 .api-key-input {
   font-family: monospace;
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: -0.5px;
 }
 
@@ -106,4 +106,30 @@ button[type="submit"]:hover {
   border-radius: 4px;
   text-align: center;
   font-size: 14px;
+}
+
+.usage-data {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #2d2d2d;
+  border: 1px solid #3c3c3c;
+  border-radius: 4px;
+  color: #ffffff;
+  text-align: center;
+  font-size: 14px;
+}
+
+.usage-data p {
+  text-align: center;
+  margin: 0;
+}
+.warning-message {
+  width: 100%;
+  background-color: #e55050; /* Orange background */
+  color: #ffffff;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
 }
