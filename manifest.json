@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "X With DeepL",
+  "name": "Twitter X With DeepL",
   "version": "0.2.5",
   "description": "Enhance your experience on X (formerly Twitter) by translating tweets and notes using DeepL's, adding a 'Translate with DeepL' button to posts and notes.",
   "author": "RoyRiv3r <3lvf7fnfo@mozmail.com>",
@@ -40,7 +40,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "pagman@sssd.com",
-      "strict_min_version": "42.0"
+      "strict_min_version": "58.0"
     }
   }
 }

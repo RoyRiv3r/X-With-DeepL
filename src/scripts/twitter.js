@@ -564,7 +564,7 @@ let localization = {};
               saveTranslationCache();
             } catch (error) {
               alert(
-                `An error occurred while translating the text: ${error.message}`
+                `An error occurred while translating the text: Wrong API key or Quota Exceeded.`
               );
               console.error("Translation error:", error);
               state.isProcessing = false;
@@ -598,9 +598,9 @@ let localization = {};
     const span = button.querySelector("span");
     if (span) {
       if (isTranslated) {
-        span.innerText = localization.showOriginal || "Show Original";
+        span.textContent = localization.showOriginal || "Show Original";
       } else {
-        span.innerText = button.dataset.originalText;
+        span.textContent = button.dataset.originalText;
       }
     }
   }

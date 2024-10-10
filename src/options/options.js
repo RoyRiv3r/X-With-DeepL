@@ -30,7 +30,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const usageDiv = document.getElementById("usage-data");
 
   // Helper function to parse stored values to booleans
-  function parseBoolean(value) {
+  function parseBoolean(value, defaultValue = false) {
+    if (value === undefined || value === null) {
+      return defaultValue;
+    }
     return value === true || value === "true";
   }
 
@@ -38,23 +41,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   const apiKey = await getSetting("api_key");
   const targetLanguage = (await getSetting("target_language")) || "EN-US";
   const formality = (await getSetting("formality")) || "default";
-  const splitSentences = parseBoolean(await getSetting("split_sentences"));
+  const splitSentences = parseBoolean(
+    await getSetting("split_sentences"),
+    true
+  );
   const preserveFormatting = parseBoolean(
-    await getSetting("preserve_formatting")
+    await getSetting("preserve_formatting"),
+    true
   );
   const removeTwitterTranslateButton = parseBoolean(
-    await getSetting("remove_twitter_translate_button")
+    await getSetting("remove_twitter_translate_button"),
+    true
   );
   const autoTranslateInStatus = parseBoolean(
-    await getSetting("auto_translate_in_status")
+    await getSetting("auto_translate_in_status"),
+    false
   );
 
-  // Load settings for the new checkboxes
+  // Load settings for the new checkboxes with default values
   const autoTranslateInQuotes = parseBoolean(
-    await getSetting("auto_translate_in_quotes")
+    await getSetting("auto_translate_in_quotes"),
+    false
   );
   const autoTranslateInHome = parseBoolean(
-    await getSetting("auto_translate_in_home")
+    await getSetting("auto_translate_in_home"),
+    false
   );
 
   if (apiKeyInput) apiKeyInput.value = apiKey || "";
@@ -108,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (apiKey && usageDiv) {
     fetchUsageData(apiKey);
   } else if (usageDiv) {
-    usageDiv.textContent = "";
+    usageDiv.textContent = "API Key missing, please enter one.";
   }
 
   // Save settings for all inputs on form submit
@@ -143,8 +154,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Display success message
       if (messageDiv) {
-        messageDiv.textContent = "Settings saved successfully.";
+        messageDiv.textContent =
+          "Settings saved successfully.\nPlease refresh the Twitter page.";
         messageDiv.style.display = "block";
+        messageDiv.style.whiteSpace = "pre-line";
 
         setTimeout(() => {
           messageDiv.style.display = "none";
@@ -167,9 +180,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 // Function to fetch usage data from DeepL API
 function fetchUsageData(apiKey) {
   const usageDiv = document.getElementById("usage-data");
-  if (usageDiv) {
-    usageDiv.textContent = "Fetching usage data...";
+
+  if (!usageDiv) {
+    console.error("Usage div not found");
+    return;
   }
+
+  if (!apiKey) {
+    usageDiv.textContent = "Please enter an API key to view usage data.";
+    return;
+  }
+
+  usageDiv.textContent = "Fetching usage data...";
+
   // Try the paid API endpoint first
   fetchUsageFromEndpoint("https://api.deepl.com/v2/usage", apiKey)
     .catch((error) => {

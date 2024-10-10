@@ -1,4 +1,4 @@
-# **X With DeepL**
+# **Twitter X With DeepL**
 
 > Enhance your experience on X (formerly Twitter) by seamlessly translating tweets and notes using DeepL's advanced translation service. "X With DeepL" integrates directly into the X interface, adding a "Translate with DeepL" button to posts and notes, allowing you to translate content into your preferred language with just one click.
 

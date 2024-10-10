@@ -1,9 +1,8 @@
-<!-- popup/popup.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>X With DeepL Settings</title>
+    <title>Twitter X With DeepL Settings</title>
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="../options/options.js"></script>
     <script src="popup.js"></script>
@@ -15,7 +14,6 @@
       <form id="options-form">
         <!-- API Key Section -->
         <div class="section">
-          <h2>API Key</h2>
           <div class="form-group">
             <label for="api-key">
               DeepL API Key <span class="required">*</span>
@@ -102,8 +100,8 @@
           </div>
         </div>
 
-        <!-- Hidden Sections -->
-        <div id="more-options" style="display: none">
+        <!-- Additional Options Sections -->
+        <div id="more-options">
           <!-- Auto-Translate Options Section -->
           <div class="section">
             <h2>Auto-Translate Options</h2>
@@ -154,15 +152,17 @@
                   name="remove-twitter-translate-button"
                   checked
                 />
-                Remove X's original "Translate post/note"
+                Remove "Translate Post"
               </label>
             </div>
           </div>
         </div>
-        <!-- More Options Button -->
-        <div class="more-options-toggle">
+
+        <!-- Remove the More Options Button -->
+        <!-- <div class="more-options-toggle">
           <button type="button" id="open-options-page">More Options</button>
-        </div>
+        </div> -->
+
         <button type="submit">Save</button>
       </form>
     </div>

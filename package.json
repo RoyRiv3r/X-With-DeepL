@@ -1,6 +1,6 @@
 {
-  "name": "xwithdeepl",
-  "version": "0.2.4",
+  "name": "twitterxwithdeepl",
+  "version": "0.2.5",
   "description": "",
   "scripts": {
     "build": "webpack",
